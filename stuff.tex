@@ -182,7 +182,7 @@ Abstract TBW
 %% Note: \maketitle command must come after title commands, author
 %% commands, abstract environment, Computing Classification System
 %% environment and commands, and keywords command.
-\maketitle
+% \maketitle
 
 \begin{definition}
   A \textbf{branch-and-bound algebra} is a semiring $\mathcal S = (S, + , \times, 0 ,1)$ equipped with orders $(\leq, \sqsubseteq)$ such that:
@@ -212,8 +212,33 @@ Abstract TBW
 \end{example}
 
 \begin{example}
-  For any branch-and-bound algebra $\mathcal B$ consider the collection of finite sets with elements in $\mathcal B$, $\mathcal P_{<\omega} (\mathcal B)$. 
+  For any branch-and-bound algebra $\mathcal B = (\mathcal B, 0, 1, +, \times, \leq, \sqsubseteq)$ consider the collection of finite sets with elements in $\mathcal B$, $\mathcal P_{<\omega} (\mathcal B)$. This forms a semiring with additive and multiplicative identities $\{0\}, \{1\}$ with:
+  \begin{enumerate}
+    \item $A + B = \cup_{A,B} \{a+b\}$,
+    \item $A \times B = \cup_{A,B} \{a \times b\}$.
+  \end{enumerate}
+  Moreover it becomes a branch-and-bound algebra with:
+  \begin{enumerate}
+    \item $A \leq B$ iff $\max A \leq \max B$, where $\max$ is the greatest in the set with respect to $\leq$, 
+    \item $A \sqsubseteq B$ iff for all $a \in A$ there exists $b \in B$ with $a \sqsubseteq b$, with join 
+    \begin{equation}
+      A \sqcup B = \cup_{A,B} \begin{cases}
+        a & a \sqcup b = a \\ 
+        b & a \sqcup b = b \\
+        \{a,b\} & else.
+      \end{cases}
+    \end{equation}
+  \end{enumerate}
 \end{example}
+
+The intuition here is that $\leq$ is a total order that allows for a selection between "fully evaluated" values and $\sqsubseteq$ is a partial order that allows for comparisons between "partially evaluated" values. The compatibility condition is effectively saying that "comparable partially evaluated values will stay comparable once fully evaluated".
+
+\begin{definition}
+  Let $X, D$ be disjoint sets of variables and let $\varphi$ a formula with variables $X \cup D$. Let $\pi(X), \pi(D)$ denote assignments to $X,D$ respectively. Fix $\mathcal B$ a branch-and-bound algebra; let $f : \mathcal P X \times \mathcal P D \to \mathcal B$ a function; the associated \textbf{max-sum} problem is
+  \begin{equation}
+    \max_{x \in \pi(X)} \sum_{y \in}
+  \end{equation}
+\end{definition}
 
 %% Acknowledgments
 % \begin{acks}                            %% acks environment is optional
