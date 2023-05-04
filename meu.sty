@@ -1,0 +1,89 @@
+\usepackage{algpseudocode, amsmath, latexsym, stmaryrd, enumerate, mathtools, graphicx, mdframed}
+
+\usepackage{proof}
+
+\usepackage{tikz-cd}
+
+% basic stuff
+
+\newcommand{\paren}[1]{\left({#1}\right)}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\e}{\varepsilon}
+\newcommand{\de}{\Delta}
+\newcommand{\st}{\ \text{s.t.} \ }
+\newcommand{\absval}[1]{\left|{#1}\right|}
+\newcommand{\hess}[1]{H{#1}}
+\newcommand{\dive}{\nabla \cdot}
+\newcommand{\curl}{\nabla \times}
+\newcommand{\dom}{\text{dom}}
+\newcommand{\im}{\text{im}}
+\newcommand{\tr}{\text{tr}}
+\newcommand{\eset}{\varnothing}
+\newcommand{\ob}[1]{\text{ob}\left({#1}\right)}
+\newcommand{\D}{\mathbb{D}}
+\renewcommand{\H}{\mathbb{H}}
+\newcommand{\arr}[1]{\text{arr}\left({#1}\right)}
+\newcommand{\vspan}{\text{span}}
+\newcommand{\power}{\mathcal{P}}
+\newcommand{\area}{\text{area}}
+\newcommand{\ran}{\text{ran}}
+\newcommand{\vol}{\text{vol}}
+\newcommand{\fl}[1]{\left\lfloor{#1}\right\rfloor}
+\newcommand{\ang}[1]{\langle{#1}\rangle}
+\renewcommand{\Re}{\text{Re}}
+\renewcommand{\Im}{\text{Im}}
+\newcommand{\cl}[1]{\overline{#1}}
+\newcommand{\separate}{\smallskip\noindent}
+\newcommand{\red}{\longrightarrow}
+\newcommand{\proves}{\vdash}
+\newcommand{\m}[1]{\mathsf{#1}}
+\renewcommand{\|}{\ | \ }
+\newcommand{\Rew}{\text{Rew}}
+
+\newcommand{\TODO}[1]{{\color{red} TODO: {#1}}}
+
+% Keywords for daPPL
+\newcommand{\aexp}{\texttt{aexp}}
+\newcommand{\Bool}{\texttt{Bool}}
+\newcommand{\Choice}{\texttt{Choice}}
+\newcommand{\flip}[1]{\texttt{flip }{#1}}
+\newcommand{\reward}[1]{\texttt{reward }{#1}}
+\newcommand{\letbind}[2]{\texttt{let }{#1}\texttt{ in }{#2}}
+\newcommand{\ite}[3]{\texttt{if }{#1}\texttt{ then }{#2}\texttt{ else }{#3}}
+\renewcommand{\choose}[1]{\texttt{choose }{#1} \ }
+
+\newcommand{\denote}[1]{\llbracket{#1}\rrbracket}
+
+% Keywords for utility, WMC
+\newcommand{\EU}{\mathbb{E}U}
+\newcommand{\MEU}{M\mathbb{E}U}
+\newcommand{\AMC}{\mathtt{AMC}}
+\newcommand{\WMC}{\mathtt{WMC}}
+\newcommand{\opt}{\pi^{\star}}
+\newcommand{\conjneg}[1]{\widehat{\overline{{#1}}}}
+
+% Miscellany
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\DeclareFontFamily{U}{mathx}{\hyphenchar\font45}
+\DeclareFontShape{U}{mathx}{m}{n}{
+      <5> <6> <7> <8> <9> <10>
+      <10.95> <12> <14.4> <17.28> <20.74> <24.88>
+      mathx10
+      }{}
+\DeclareSymbolFont{mathx}{U}{mathx}{m}{n}
+\DeclareFontSubstitution{U}{mathx}{m}{n}
+\DeclareMathAccent{\widecheck}{0}{mathx}{"71}
