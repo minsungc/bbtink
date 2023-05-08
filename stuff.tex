@@ -184,17 +184,19 @@ Abstract TBW
 %% environment and commands, and keywords command.
 % \maketitle
 
+\section{Preliminary definitions, examples, and lemmata}
+
 \begin{definition}
   A \textbf{branch-and-bound algebra} is a semiring $\mathcal S = (S, + , \times, 0 ,1)$ equipped with orders $(\leq, \sqsubseteq)$ such that:
   \begin{enumerate}
     \item $(S, \leq)$ is a total order,
     \item $(S, \sqsubseteq)$ is a join--semilattice with join $\sqcup$ where $\sqsubseteq$ respects $+,\times$, 
-    \item $\leq, \sqsubseteq$ are \textit{compatible} in the sense that for all $a \sqsubseteq b$, we also have $a \leq b$.
+    \item $\leq, \sqsubseteq$ are \textit{compatible} in the sense that for all $a \sqsubseteq b$, we also have $a \leq b$. We will henceforth call this \textbf{compatibility}.
   \end{enumerate}
 \end{definition}
 
 \begin{example}
-  The nonnegative real numbers $\R^{\geq 0}$ forms a branch-and-bound algebra with the usual semiring structure of $\R^{\geq 0}$ and the usual order serving as both $\leq$ and $\sqsubseteq$, with join being the $\max$ function.
+  The nonnegative real numbers $\R^{\geq 0}$ forms a branch-and-bound algebra with the usual semiring structure of $\R^{\geq 0}$ and the usual order serving as both $\leq$ and $\sqsubseteq$, with join being the $\max$ function. The standard extension $\R^{\geq 0} \cup \{\infty\}$ is also a branch-and-bound algebra with the usual extended operations.
 \end{example}
 
 \begin{example}
@@ -233,12 +235,60 @@ Abstract TBW
 
 The intuition here is that $\leq$ is a total order that allows for a selection between "fully evaluated" values and $\sqsubseteq$ is a partial order that allows for comparisons between "partially evaluated" values. The compatibility condition is effectively saying that "comparable partially evaluated values will stay comparable once fully evaluated".
 
-\begin{definition}
-  Let $X, D$ be disjoint sets of variables and let $\varphi$ a formula with variables $X \cup D$. Let $\pi(X), \pi(D)$ denote assignments to $X,D$ respectively. Fix $\mathcal B$ a branch-and-bound algebra; let $f : \mathcal P X \times \mathcal P D \to \mathcal B$ a function; the associated \textbf{max-sum} problem is
-  \begin{equation}
-    \max_{x \in \pi(X)} \sum_{y \in}
+\begin{definition}\label{MSP JSP}
+  Let $X$ be a set and $Y(X)$ a set disjoint but possibly dependent on $X$. $\mathcal B$ a branch-and-bound algebra. Let $f : X \times Y \to \mathcal B$ be a function. Then the \textbf{max-sum problem (MSP)} associated to $f$ is
+  \begin{equation}\label{MSP}
+    \max_{x \in X} \sum_{y \in Y(X)} f(x,y).
+  \end{equation}
+  where $\max$ is taken with respect to the total order $\leq$ of the branch and bound algebra. Relatedly, the \textbf{join-sum problem (JSP)} associated to $f$ is 
+  \begin{equation}\label{JSP}
+    \bigsqcup_{x \in X} \sum_{y \in Y(X)} f(x,y).
   \end{equation}
 \end{definition}
+
+\begin{example}
+  The marginal MAP problem is the MSP problem with $X = inst(M)$ instantiations of MAP variables, $Y = inst(V)$ instantiations of the marginal variables, and $$f(m,v) = \Pr(M=m, V=v \ |\  E=e).$$
+\end{example}
+
+\begin{example}
+  The maximum expected utility problem is the MSP problem with $X = \pi$ policies, $Y = E$ the event in which the policy $x \in X$ was taken, and 
+    $$f(\pi, E) = \sum_{\omega \in E} \Pr(\omega) U(\omega)$$
+  where $U(\omega)$ is additive coordinatewise if $\omega$ if the probability distribution is a joint distribution.
+\end{example}
+
+\begin{example}
+  The weak weighted SAT problem asks for a boolean formula $\varphi$ over variables $V$ the maximum numbers of true variables in a satisfying assignment. This the MSP problem with $X = inst(V)$, $Y = V$, and 
+  $$f(x,v) = \begin{cases}
+    1 & x(v) = \top , \\ 0 & x(v) = \bot
+  \end{cases}$$
+  if $\varphi(x)$ is SAT and $f(x, \_) = 0$ if $\varphi(x)$ is UNSAT.
+\end{example}
+
+\begin{lemma}[JSP is weak MSP\footnote{One may think that this is reminiscent of weak duality. Unfortunately weak duality is completely irrelevant to this Lemma and is only used for namesake purposes.}]\label{weak}
+  Let $X,Y$ be disjoint and $\mathcal B$ a branch-and-bound algebra. Let $f : X \times Y \to \mathcal B$ be a function. Let $MSP$, $JSP$ be the max-sum problem and the join-sum problem with respect to $f$ as in \ref{MSP JSP}. Then we have
+  \begin{equation}
+    MSP \leq JSP.
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  It suffices to show for all $a,b \in \mathcal B$, $\max \{a,b\} \leq a \sqcup b$. Note that $\max\{a,b\}=a$ or $=b$; by definition of join we have $a,b \sqsubseteq a \sqcup b$; by compatibility we are done.
+\end{proof}
+
+\begin{definition}\label{BMSP BJSP}
+  Let $\varphi$ be a Boolean formula over variables $V$ and let $X \subseteq V$ a subsest of variables. Let $Y(\varphi|_X)$ be a set depending on $\varphi$ conditioned on instantiations of $X$. Let $\mathcal B$ a branch-and-bound algebra. Let $f: X \times Y \to \mathcal B$ a function. Then the \textbf{Boolean max-sum problem} is
+  \begin{equation}\label{BMSP}
+    \max_{x \in X} \sum_{y \in Y(\varphi|_X)} f(x,y).
+  \end{equation}
+  where $\max$ is taken with respect to the total order $\leq$ of the branch and bound algebra. Relatedly, the \textbf{join-sum problem (JSP)} associated to $f$ is 
+  \begin{equation}\label{BJSP}
+    \bigsqcup_{x \in X} \sum_{y \in Y(\varphi|_X)} f(x,y).
+  \end{equation}
+\end{definition}
+
+It is easy to see that if $Y(X)$ in Definition \ref{MSP JSP} is a function mapping $X$ to a set, then $Y(\varphi|_X)$ in Definition \ref{BMSP BJSP} is identical; it maps $X$ to a function mapping $\varphi|_X$ to a set. This lends itself to the fact that Lemma \ref{weak} naturally extends to Definition \ref{BMSP BJSP}.
+
+\section{Solving Boolean max-sum problems exactly through branch-and-bound search}
 
 %% Acknowledgments
 % \begin{acks}                            %% acks environment is optional
