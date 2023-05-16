@@ -1,8 +1,15 @@
-\usepackage{algpseudocode, amsmath, dsfont, latexsym, stmaryrd, enumerate, mathtools, graphicx, mdframed}
+\usepackage{algpseudocode, amsmath, latexsym, stmaryrd, enumerate, mathtools, graphicx, mdframed, array}
+
+\usepackage{caption}
+\usepackage{subcaption}
 
 \usepackage{proof}
 
+\usepackage{tikz}
+\captionsetup[table]{position=bottom} 
+
 \usepackage{tikz-cd}
+\usetikzlibrary{decorations.pathmorphing}
 
 % basic stuff
 
@@ -48,6 +55,8 @@
 \newcommand{\TODO}[1]{{\color{red} TODO: {#1}}}
 
 % Keywords for daPPL
+\newcommand{\dappl}{\texttt{daPPL}}
+
 \newcommand{\aexp}{\texttt{aexp}}
 \newcommand{\Bool}{\texttt{Bool}}
 \newcommand{\Choice}{\texttt{Choice}}
@@ -77,6 +86,7 @@
 \newtheorem{definition}{Definition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
+\newcommand{\dice}{\texttt{Dice}}
 
 \DeclareFontFamily{U}{mathx}{\hyphenchar\font45}
 \DeclareFontShape{U}{mathx}{m}{n}{
@@ -87,3 +97,58 @@
 \DeclareSymbolFont{mathx}{U}{mathx}{m}{n}
 \DeclareFontSubstitution{U}{mathx}{m}{n}
 \DeclareMathAccent{\widecheck}{0}{mathx}{"71}
+
+% daPPL code env
+\usepackage{listings,xcolor,lstautogobble}
+
+\definecolor{background_color}{RGB}{255, 255, 255}
+\definecolor{string_color}    {RGB}{180, 156,   0}
+\definecolor{identifier_color}{RGB}{  0,   0,   0}
+\definecolor{keyword_color}   {RGB}{ 64, 100, 255}
+\definecolor{comment_color}   {RGB}{  0, 117, 110}
+\definecolor{number_color}    {RGB}{ 84,  84,  84}
+\lstdefinestyle{15150code}{
+    basicstyle=\ttfamily,
+    numberstyle=\tiny\ttfamily\color{number_color},
+    backgroundcolor=\color{background_color},
+    stringstyle=\color{string_color},
+    identifierstyle=\color{identifier_color},
+    keywordstyle=\color{keyword_color},
+    commentstyle=\color{comment_color},
+    numbers=none,
+    frame=none,
+    columns=fixed,
+    tabsize=2,
+    breaklines=true,
+    keepspaces=true,
+    showstringspaces=false,
+    captionpos=b,
+    autogobble=true,
+    mathescape=true,
+}
+\lstdefinelanguage{sml}{
+    language=ML,
+    morestring=[b]",
+    morecomment=[s]{(*}{*)},
+    morekeywords={
+        bool, char, exn, int, real, string, unit, list, option,
+        EQUAL, GREATER, LESS, NONE, SOME, nil, xor,
+        andalso, or, false, not,
+        if, then, else, case, of, as,
+        let, in, end, local, val, rec,
+        datatype, type, exception, handle,
+        fun, fn, op, raise, ref,
+        structure, struct, signature, sig, functor,
+        include, open, use, infix, infixr, o, print, flip, choose, observe,reward 
+    }
+}
+% code inline
+\newcommand{\code}[2][]{{\sloppy
+\ifmmode
+    \text{\lstinline[language=sml,style=15150code,#1]`#2`}
+\else
+    {\lstinline[language=sml,style=15150code,#1]`#2`}%
+\fi}}
+
+% code block
+\lstnewenvironment{codeblock}[1][]{\lstset{language=sml,style=15150code,#1}}{}

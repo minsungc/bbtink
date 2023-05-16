@@ -275,20 +275,120 @@ The intuition here is that $\leq$ is a total order that allows for a selection b
   It suffices to show for all $a,b \in \mathcal B$, $\max \{a,b\} \leq a \sqcup b$. Note that $\max\{a,b\}=a$ or $=b$; by definition of join we have $a,b \sqsubseteq a \sqcup b$; by compatibility we are done.
 \end{proof}
 
+For the following definition we write for $V$ a set of Boolean variables $inst(V)$ the set of instantiations of $V$ and $lits(V)$ the set of literals of $V$. We write $m \models \varphi$ to denote that $m$ is an instantiation of the variables of $\varphi$ such that the evaluation is true.
+
 \begin{definition}\label{BMSP BJSP}
-  Let $\varphi$ be a Boolean formula over variables $V$ and let $X \subseteq V$ a subsest of variables. Let $Y(\varphi|_X)$ be a set depending on $\varphi$ conditioned on instantiations of $X$. Let $\mathcal B$ a branch-and-bound algebra. Let $f: X \times Y \to \mathcal B$ a function. Then the \textbf{Boolean max-sum problem} is
+  Let $\varphi$ be a Boolean formula over variables $V$ and let $X \subseteq V$ a subsest of variables. . Let $\mathcal B$ a branch-and-bound algebra. Let $f: inst(V) \to \mathcal B$ a function. Then the \textbf{Boolean max-sum problem} is
   \begin{equation}\label{BMSP}
-    \max_{x \in X} \sum_{y \in Y(\varphi|_X)} f(x,y).
+    MSP(\varphi) = \max_{x \in inst(X)} \sum_{m \models \varphi|_x} f(x,m)
   \end{equation}
   where $\max$ is taken with respect to the total order $\leq$ of the branch and bound algebra. Relatedly, the \textbf{join-sum problem (JSP)} associated to $f$ is 
   \begin{equation}\label{BJSP}
-    \bigsqcup_{x \in X} \sum_{y \in Y(\varphi|_X)} f(x,y).
+    JSP(\varphi) = \bigsqcup_{x \in inst(X)} \sum_{m \models \varphi|_x} f(x,m).
+  \end{equation}
+  We call the problems \emph{factorizable} if there exists a weight function $w : lits(V) \to \mathcal B$ such that for all instantiations $v$ of $V$ it is that
+  \begin{equation}\label{factor}
+    f(v) = \prod_{\ell \in v} w(\ell).
   \end{equation}
 \end{definition}
 
-It is easy to see that if $Y(X)$ in Definition \ref{MSP JSP} is a function mapping $X$ to a set, then $Y(\varphi|_X)$ in Definition \ref{BMSP BJSP} is identical; it maps $X$ to a function mapping $\varphi|_X$ to a set. This lends itself to the fact that Lemma \ref{weak} naturally extends to Definition \ref{BMSP BJSP}.
+It is easy to see that Definition \ref{BMSP BJSP} is a special case of Definition \ref{MSP JSP}, thus Lemma \ref{weak} specializes.
 
-\section{Solving Boolean max-sum problems exactly through branch-and-bound search}
+
+\section{Solving factorizable Boolean max-sum problems exactly through branch-and-bound search}
+
+\subsection{Interlude on notation and related lemmata}
+
+We assume from this point forward that we are working with max-sum and join-sum problems strictly in the Boolean setting where the objective function (that is, $f$ in Defintion \ref{MSP JSP}) is factorizable into a weight function over literals $w$. When $f$ and $w$ are implicit, instead of writing
+\begin{equation}
+  \sum_{m \models \varphi} \prod_{\ell \in m} w(\ell)
+\end{equation}
+we write
+\begin{equation}
+  \sum\prod \varphi.
+\end{equation}
+We provide a few supporting lemmata that follow directly from the model theory of Boolean functions.
+
+\begin{lemma}\label{ind conj}[Independent Conjunction]
+  Suppose $\varphi$ and $\psi$ Boolean formulae with nonintersecting variables. Then 
+  \begin{equation}
+    \sum\prod \varphi \land \psi = \paren{\sum\prod \varphi} \paren{\sum\prod \psi}.
+  \end{equation}
+\end{lemma}
+
+\begin{lemma}\label{disj}[Inclusion-Exclusion]
+  Suppose $\varphi$ and $\psi$ are Boolean formulae. Then
+  \begin{equation}
+    \sum\prod\varphi \lor \psi = \sum\prod \varphi + \sum\prod \psi - \sum\prod \varphi\land\psi.
+  \end{equation}
+\end{lemma}
+
+\begin{lemma}\label{conditioning}[Conditioning]
+  Suppose $\varphi$ a Boolean formula and $v$ a Boolean variable occurring in $\varphi$. Fix a weight function $w : lits(\varphi) \to \mathcal B$. Then we have
+  \begin{equation}
+    \sum\prod \varphi = \paren{\sum\prod (\varphi|_v \land v)} + \paren{\sum\prod (\varphi|_{\overline v} \land \overline v)}.
+  \end{equation}
+\end{lemma}
+
+\subsection{The upper-bound algorithm}
+
+Suppose $\varphi$ a Boolean formula over variables $V$ and $X \subseteq V$ as the setting of Definition \ref{BMSP BJSP}. We refer to an instantiation of a subset of variables of $X$ as a partial model.
+
+\begin{figure}[H]
+  \begin{subfigure}{1 \textwidth}
+    \begin{mdframed}{\begin{algorithmic}[1]
+      \Procedure{$ub$}{$\varphi, X, P, w$}
+      \State $pm \gets \prod_{p \in P} w(p)$ 
+      \State $acc \gets h(\varphi|_P, X, w)$
+      \State \textbf{return} $pm \times acc$
+      \EndProcedure
+    \end{algorithmic}}
+    \end{mdframed}
+    \caption{The upper bound algorithm $ub$ takes in a formula $\varphi$, a subset $X \subseteq vars(\varphi)$, $P$ a partial model of $X$, and $w : lits(\varphi) \to \mathcal B$ a weight function.}
+    \label{ub algo}
+  \end{subfigure}
+  \begin{subfigure}{1 \textwidth}
+    \begin{mdframed}{\begin{algorithmic}[1]
+      \Procedure{$h$}{$\varphi, X, w$}
+      \If {$\varphi = \top$} \textbf{return} 1
+      \ElsIf {$\varphi = \bot$} \textbf{return} 0
+      \Else{ \textbf{choose} $v \in Vars(\varphi)$}
+        \If{$v \in X$}  \textbf{return} $w(v)h(\varphi|_v) \sqcup w(\overline v)h(\varphi|_{\overline v}$)
+        \Else{ \textbf{return} $w(v)h(\varphi|_v) + w(\overline v)h(\varphi|_{\overline v}$)}
+        \EndIf
+      \EndIf
+      \EndProcedure
+    \end{algorithmic}}
+    \end{mdframed}
+    \caption{The helper function $h$ as seen on Line 3 in the above algorithm.}
+    \label{h algo}
+  \end{subfigure}
+  \caption{A single top-down pass upper-bound function.}
+\end{figure}
+
+What does $ub$ upper bound? The answer is subtle and we will first build supporting lemmata. 
+
+\begin{lemma}\label{h invariant for total models}
+  Let $\varphi$ be a formula and $X$ a set of Boolean variables disjoint from $vars(\varphi)$. Then for any weight function $w : lits(\varphi) \to \mathcal B$,
+  \begin{equation}
+    h(\varphi, X, w) = \sum\prod \varphi.
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  The proof reduces to the fact that as long as Line 5 of $h$ (as seen in Algorithm \ref{h algo}) is never invoked, $h(\varphi, X,w)$ calculates the algebraic model count of $\varphi$ with respect to $w$.
+\end{proof}
+
+\begin{corollary}\label{ub invariant for total models}
+  Let $\varphi$ be a formula and let $X \subseteq vars(\varphi)$. Let $P$ be a partial model of $X$ instantiating all variables of $X$. Let $w : lits(\varphi) \to \mathcal B$ be a weight function. Then
+  \begin{equation}
+    ub(\varphi, X, P, w) = \sum_{m \models \varphi|_P} \prod_{\ell \in m, P} w(\ell).
+  \end{equation}
+  In particular, if $f : inst(vars(\varphi)) \to \mathcal B$ is factorizable by $w$, we have
+  \begin{equation}
+    ub(\varphi, X, P, w) = \sum_{m \models \varphi|_P} f(m,P).
+  \end{equation}
+\end{corollary}
 
 %% Acknowledgments
 % \begin{acks}                            %% acks environment is optional
