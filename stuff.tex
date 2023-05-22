@@ -190,7 +190,11 @@ Abstract TBW
   A \textbf{branch-and-bound algebra} is a semiring $\mathcal S = (S, + , \times, 0 ,1)$ equipped with orders $(\leq, \sqsubseteq)$ such that:
   \begin{enumerate}
     \item $(S, \leq)$ is a total order,
-    \item $(S, \sqsubseteq)$ is a join--semilattice with join $\sqcup$ where $\sqsubseteq$ respects $+,\times$, 
+    \item $(S, \sqsubseteq)$ is a join--semilattice with join $\sqcup$ where:
+      \begin{enumerate}
+        \item $\sqsubseteq$ respects $+,\times$,
+        \item For all $s \in S$, $0 \sqsubseteq s$, 
+      \end{enumerate}
     \item $\leq, \sqsubseteq$ are \textit{compatible} in the sense that for all $a \sqsubseteq b$, we also have $a \leq b$. We will henceforth call this \textbf{compatibility}.
   \end{enumerate}
 \end{definition}
@@ -366,7 +370,11 @@ Suppose $\varphi$ a Boolean formula over variables $V$ and $X \subseteq V$ as th
   \caption{A single top-down pass upper-bound function.}
 \end{figure}
 
-What does $ub$ upper bound? The answer is subtle and we will first build supporting lemmata. 
+What does $ub$ upper bound? The answer is subtle and we will first build supporting definitions and lemmata.
+
+\begin{definition}
+  Let $\varphi$ be a Boolean formula and $X \subseteq vars(\varphi)$. A \emph{partial model} of $X$ is an instantiation of variables $Y \subsetneq X$. A \emph{total model} of $X$ is an instantiation of $X$.
+\end{definition}
 
 \begin{lemma}\label{h invariant for total models}
   Let $\varphi$ be a formula and $X$ a set of Boolean variables disjoint from $vars(\varphi)$. Then for any weight function $w : lits(\varphi) \to \mathcal B$,
@@ -391,31 +399,114 @@ What does $ub$ upper bound? The answer is subtle and we will first build support
 \end{corollary}
 
 \begin{lemma}\label{upper bounds pm}
-  Let $\varphi$ be a formula and let $X \subseteq vars(\varphi)$. Let $P$ be a partial model of $X$. Let $P' \supseteq P$ a completion of $P$ that assigns all variables of $X$. Then 
+  Let $\varphi$ be a formula and let $X \subseteq vars(\varphi)$. Let $T$ be a total model of $X$. Then for any $P \subseteq T$, 
   \begin{equation}
-    ub(\varphi, X, P, w) \sqsupseteq ub(\varphi, X , P',w).
+    ub(\varphi, X, T \setminus P, w) \sqsupseteq ub(\varphi, X , T,w).
   \end{equation}
+  In other words, every partial model upper-bounds its total extension.
 \end{lemma}
 
 \begin{proof}
-  It suffices to show that, for any $\ell \in P'$,
+  We induct simultaneously on the size of $P$ and $vars(\varphi)$. If $P = \eset$ or $vars(\varphi) = \eset$ the proof is trivial; assume as our inductive hypothesis that for all $P' \subsetneq P$
   \begin{equation}
-    ub(\varphi, X, P' \setminus \ell, w) \sqsupseteq ub(\varphi, X, P', w).
+    ub(\varphi, X, T\setminus P', w) \sqsupseteq ub(\varphi, X, T, w).\tag{IH}
   \end{equation}
-  The above inequality reduces to showing
+  Unfolding we can recover
   \begin{equation}
-    h(\varphi|_{P' \setminus \ell}, X, w) \sqsupseteq w(\ell) h(\varphi|_{P'}, X,w).
+    h(\varphi|_{T \setminus P'}) \sqsupseteq h(\varphi|_T)\prod_{x \in P'} w(x).\tag{IH}
   \end{equation}
-  Without loss of generality assume that $\ell$ is the first variable chosen by line 5 of Algorithm \ref{h algo} on the LHS of the algorithm. Then we observe
-  \begin{align*}
-    h(\varphi|_{P' \setminus \ell}, X, w)
-      &= w(\ell)h(\varphi|_{P'}, X, w) 
-        \sqcup  w(\overline{\ell})h(\varphi|_{P' \setminus \ell}|_{\overline \ell}, X, w)\\
-      &\sqsupseteq w(\ell)h(\varphi|_{P'}, X, w)
-  \end{align*}
-  as desired.
+  For the inductive case, it suffices to show
+  \begin{equation}
+    h(\varphi|_{T \setminus P}) \sqsupseteq h(\varphi|_T)\prod_{x \in P} w(x).
+  \end{equation}
+  let $x$ be the variable chosen by line 4 of Algorithm \ref{h algo}. We case.
+  \begin{itemize}
+    \item If $x \in P$, then in particular $x \in T$; we take the join as per line 5. We observe
+    \begin{align*}
+      h(\varphi|_{T \setminus P})
+        &=w(x)h(\varphi|_{T \setminus P}|_x) \sqcup w(\overline x)h(\varphi|_{T \setminus P}|_{\overline x}) \\
+        &=w(x)h(\varphi|_{T \setminus (P \setminus \{x\})}) \sqcup w(\overline x)h(\varphi|_{T \setminus P}|_{\overline x}) \\  
+        &\sqsupseteq w(x)h(\varphi|_T)\prod_{y \in P\setminus \{x\}}w(y) \sqcup w(\overline x)h(\varphi|_{T \setminus P}|_{\overline x})&\text{(IH)}\\  
+        &\sqsupseteq w(x)h(\varphi|_T)\prod_{y \in P\setminus \{x\}}w(x) = \boxed{h(\varphi|_T)\prod_{y \in P}w(x).}    
+    \end{align*}
+    \item If $x \notin P$, then we only need to consider the case when $x \notin T$ also; we take the sum as per line 6. We continue recursing until we hit a variable $x' \in P$; then we reduce to case 1 and we are done.
+  \end{itemize}
 \end{proof}
 
+\textit{Remark.} It is important to note that the above lemma cannot be generalized to give a relation between two partial models $P \subsetneq P'$. This is because that the first inductive case crucially relies on the fact that we are not applying the IH twice. Indeed, in general,
+\begin{align*}
+   w(x)h(\varphi|_T)\prod_{y \in P\setminus \{x\}}w(y) \sqcup w(\overline x)h(\varphi|_T)\prod_{y \in P\setminus \{\overline x\}} w(y) \\\quad 
+   \not\sqsupseteq \prod_{y \in P \setminus \{x, \overline x\}} w(y) \paren{w(x)h(\varphi|_T) \sqcup w(\overline x) h(\varphi|_T)}
+\end{align*}
+when $x \notin P'$; this is a manifestation of the more general phenomena that
+$$a(b \sqcup c) \not \sqsubseteq ab \sqcup ac.$$
+
+Now we can precisely define what \textit{exactly we are upper bounding.} The following theorem is a trivial application of Corrollary 1 and Lemma 6.
+
+\begin{theorem}
+  Fix $\varphi$ a Boolean formula and let $X \subseteq vars(\varphi)$. Let $P$ a partial model of $X$. Then, for any $T$ a total model extension of $P$,
+  \begin{equation}
+    ub(\varphi, X, P, w) \sqsupseteq \sum_{m \models T} \prod_{\ell \in m, T} w(\ell).
+  \end{equation}
+\end{theorem}
+
+\subsection{The branch-and-bound algorithm}
+
+\begin{figure}[H]
+  \begin{mdframed}{\begin{algorithmic}[1]
+    \Procedure{$bb$}{$\varphi, R, b, P_{curr}$}
+    \If {$R = \eset$} 
+      \State $u = ub(\varphi, X, P_{curr}, w)$ \Comment{$P_{curr}$ will be a total model}
+      \State \textbf{return } $\max(u, b)$
+    \Else
+       \State $r = pop(R)$
+       \For {$\ell \in \{r, \overline r\}$}
+        \State $u = ub(\varphi, X, P_{curr} \cup \{\ell\},w)$
+        \If {$u \not\sqsubseteq b$}
+          \State $r = bb(\varphi, R, b, P_{curr} \cup \{\ell\})$ \Comment{$r$ will always be from a total model}
+          \State $b = \max(r,b)$
+        \EndIf
+        \State \textbf{return } $b$
+       \EndFor
+    \EndIf
+  \EndProcedure
+  \end{algorithmic}}\end{mdframed}
+  \caption{A branch-and-bound style algorithm calculating the max-sum problem. $\varphi$ is the Boolean formula with subset of variables $X$, $R$ is a tracker for branch-and-bound variables initialized as $X$, $b$ is a lower-bound initialized as $0$, and $P_{curr}$ is the current partial model.}
+  \label{bb algo}
+\end{figure}
+
+\begin{lemma}\label{totality of bb}
+  In Algorithm \ref{bb algo}, $b$ will always either be
+  \begin{equation*}
+    \text{(1)}\ \sum\prod \varphi|_T \quad \text{ for some total model $T$, or} \quad \text{(2)}\  0. 
+  \end{equation*}
+\end{lemma}
+
+\begin{proof}
+  The proof is a straightforward induction on $R$. 
+\end{proof}
+
+\begin{theorem}\label{soundness of bb}
+  $bb(\varphi, X, 0, \eset) = MSP(\varphi).$
+\end{theorem}
+
+\begin{proof}
+  It suffices to prove that $MSP(\varphi)$ is never pruned. That is, let $T_{MSP}$ be the total model witnessing $MSP(\varphi)$. We claim that $T_{MSP} = P_{curr}$ at some recursive call of $bb$. 
+
+  Suppose not. Then, following line 9 of Algorithm \ref{bb algo}, there exists a partial model $P' \subset T_{MSP}$ such that $ub(\varphi, X, P', w) \sqsubseteq b$ for some $b$. By Lemma \ref{totality of bb}, we case on $b$.
+
+  If $b=0$, then we have that $ub(\varphi, X, P', w)=0$. By Lemma \ref{upper bounds pm}, we have that then $\sum\prod \varphi|_{T_{MSP}} = 0$. But since this is the maximum such, we have that for all total models $T$ that $\sum\prod \varphi|_T=0$; thus we are done.
+
+  If $b = \sum\prod \varphi|_T$ for some total model $T$, then we have that:
+  \begin{equation*}
+    \sum\prod \varphi|_{T_{MSP}} \sqsubseteq ub(\varphi, X, P', w) \sqsubseteq \sum\prod \varphi|_T.
+  \end{equation*}
+  By compatibility we have that
+  \begin{equation*}
+    \sum\prod \varphi|_{T_{MSP}} \leq \sum\prod \varphi|_T.
+  \end{equation*}
+  If the two sides are equal that means that $MSP(\varphi)$ has multiple witnesses, thus the branch was never pruned. Otherwise the contradiction is obvious and we are done.
+\end{proof}
 %% Acknowledgments
 % \begin{acks}                            %% acks environment is optional
 %                                         %% contents suppressed with 'anonymous'
