@@ -390,6 +390,32 @@ What does $ub$ upper bound? The answer is subtle and we will first build support
   \end{equation}
 \end{corollary}
 
+\begin{lemma}\label{upper bounds pm}
+  Let $\varphi$ be a formula and let $X \subseteq vars(\varphi)$. Let $P$ be a partial model of $X$. Let $P' \supseteq P$ a completion of $P$ that assigns all variables of $X$. Then 
+  \begin{equation}
+    ub(\varphi, X, P, w) \sqsupseteq ub(\varphi, X , P',w).
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  It suffices to show that, for any $\ell \in P'$,
+  \begin{equation}
+    ub(\varphi, X, P' \setminus \ell, w) \sqsupseteq ub(\varphi, X, P', w).
+  \end{equation}
+  The above inequality reduces to showing
+  \begin{equation}
+    h(\varphi|_{P' \setminus \ell}, X, w) \sqsupseteq w(\ell) h(\varphi|_{P'}, X,w).
+  \end{equation}
+  Without loss of generality assume that $\ell$ is the first variable chosen by line 5 of Algorithm \ref{h algo} on the LHS of the algorithm. Then we observe
+  \begin{align*}
+    h(\varphi|_{P' \setminus \ell}, X, w)
+      &= w(\ell)h(\varphi|_{P'}, X, w) 
+        \sqcup  w(\overline{\ell})h(\varphi|_{P' \setminus \ell}|_{\overline \ell}, X, w)\\
+      &\sqsupseteq w(\ell)h(\varphi|_{P'}, X, w)
+  \end{align*}
+  as desired.
+\end{proof}
+
 %% Acknowledgments
 % \begin{acks}                            %% acks environment is optional
 %                                         %% contents suppressed with 'anonymous'
